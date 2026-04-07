@@ -1,9 +1,11 @@
-namespace AuctionService.DTOs;
+using MongoDB.Entities;
 
-public class AuctionDto
+// namespace SearchService;
+
+namespace SearchService.Models;
+
+public class Item : Entity
 {
-    public Guid Id { get; set; }
-
     public int ReservePrice { get; set; }
 
     public string Seller { get; set; }
@@ -15,10 +17,10 @@ public class AuctionDto
     public int CurrentHighBid { get; set; }
 
 
-    public DateTime CreatedAT { get; set; }
+    public DateTime CreatedAt { get; set ;}
 
-    public DateTime UpdatedAT { get; set; } = DateTime.UtcNow;
-    public DateTime AuctionEnd { get; set; }
+    public DateTime UpdatedAT { get; set ;} = DateTime.UtcNow;
+    public DateTime AuctionEnd { get; set ;}
 
     public String Status { get; set; }
 
@@ -33,6 +35,4 @@ public class AuctionDto
     public int Mileage { get; set; }
 
     public string ImageUrl { get; set; }
-
-
 }
