@@ -8,28 +8,32 @@ namespace SearchService;
 public class DbInitializer
 {
     public static async Task InitDb(WebApplication app)
+{
+    await DB.InitAsync("SearchDb", MongoClientSettings
+        .FromConnectionString(app.Configuration.GetConnectionString("MongoDbConnection")));
+
+    var count = await DB.CountAsync<Item>();
+
+    using var scope = app.Services.CreateScope();
+    var httpClient = scope.ServiceProvider.GetRequiredService<AuctionSvcHttpClient>();
+
+    var items = await httpClient.GetItemsForSearchDb();
+
+    Console.WriteLine(items.Count + " returned from the auction service");
+
+    // ✅ FIRST insert data
+    if (count == 0 && items.Count > 0)
     {
+        await DB.SaveAsync(items);
+    }
 
-        await DB.InitAsync("SearchDb", MongoClientSettings
-            .FromConnectionString(app.Configuration.GetConnectionString("MongoDbConnection")));
+    // ✅ THEN create text index (VERY IMPORTANT)
+    Console.WriteLine("Creating text index...");
 
-        await DB.Index<Item>()
-            .Key(x => x.Make, KeyType.Text)
-            .Key(x => x.Model, KeyType.Text)
-            .Key(x => x.Color, KeyType.Text)
-            .CreateAsync();
-
-        var count = await DB.CountAsync<Item>();
-
-        using var scope = app.Services.CreateScope();
-
-        var httpClient = scope.ServiceProvider.GetRequiredService<AuctionSvcHttpClient>();
-
-        var items = await httpClient.GetItemsForSearchDb();
-
-        Console.WriteLine(items.Count + " returned from the auction service");
-
-        if (items.Count > 0) await DB.SaveAsync(items);
-
-    }   
+    await DB.Index<Item>()
+        .Key(x => x.Make, KeyType.Text)
+        .Key(x => x.Model, KeyType.Text)
+        .Key(x => x.Color, KeyType.Text)
+        .CreateAsync();
+}
 }
